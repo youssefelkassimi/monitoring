@@ -1,0 +1,70 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: monitoring_v2
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/monitorV1}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:1111}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+#  flyway:
+#    enabled: false
+#    locations: classpath:db/migration
+
+  jackson:
+    default-property-inclusion: non_null
+
+#app:
+#  # Location of the anomaly_server Python service (Random Forest).
+#  anomaly:
+#    url: ${ANOMALY_URL:http://localhost:5001}
+#    enabled: ${ANOMALY_ENABLED:false}
+#    # Optional bearer token if the anomaly server requires auth.
+#    api_key: ${ANOMALY_API_KEY:}
+#    # Run anomaly evaluation every N seconds over recently received samples.
+#    scan_interval_ms: 15000
+#    # Min samples before a prediction is meaningful enough to alert.
+#    min_samples: 50
+#    # Alert only for anomaly probability at or above this threshold.
+#    alert_threshold: 0.8
+
+  websocket:
+    topic: "/topic/metrics"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com:
+      elkassimi:
+        monitoring_v2_0:
+          websocket:
+            RealTimePushService: TRACE
