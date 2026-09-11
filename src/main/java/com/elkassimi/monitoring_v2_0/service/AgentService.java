@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -77,10 +78,15 @@ public class AgentService {
     public Agent register(RegistrationRequestDto dto) throws Exception {
         log.info("Registering agent: agentId={}, hostname='{}'", dto.getAgentId(), dto.getHostname());
 
-        Agent agent = agentRepository.findByAgentId(dto.getAgentId())
-                .orElseThrow(()-> {
-                    log.warn("Registration failed: agent not found for agentId={}", dto.getAgentId());
-                    return new Exception("agent not fund");
+        Optional<Agent> existingAgent = agentRepository.findByAgentId(dto.getAgentId());
+        boolean newAgent = existingAgent.isEmpty();
+        Agent agent = existingAgent
+                .orElseGet(() -> {
+                    log.warn("Agent not found for agentId={}, creating it during registration", dto.getAgentId());
+                    return Agent.builder()
+                            .agentId(dto.getAgentId())
+                            .provisioningStatus(Agent.ProvisioningStatus.PENDING)
+                            .build();
                 });
 
         log.debug("Updating agent metadata for agentId={}: os={}, osVersion={}, architecture={}, pythonVersion={}",
@@ -105,7 +111,11 @@ public class AgentService {
 
         log.debug("pushAgentUpdate payload={}", saved);
 
-        pushService.pushAgentUpdate(saved);
+        if (newAgent) {
+            pushService.pushAgents(saved);
+        } else {
+            pushService.pushAgentUpdate(saved);
+        }
         log.info("Agent registered successfully: agentId={}, status={}, provisioningStatus={}",
                 saved.getAgentId(), saved.getStatus(), saved.getProvisioningStatus());
         return saved;
@@ -129,7 +139,11 @@ public class AgentService {
     public void recordHeartbeat(HeartbeatRequestDto dto) {
         log.debug("Recording heartbeat for agentId={}, status='{}'", dto.getAgentId(), dto.getStatus());
 
-        Agent agent = findOrCreate(dto.getAgentId());
+        Agent agent = agentRepository.findByAgentId(dto.getAgentId())
+                .orElseGet(() -> {
+                    log.warn("Agent not found for agentId={}, creating bare-bones record", dto.getAgentId());
+                    return Agent.builder().agentId(dto.getAgentId()).status(Agent.AgentStatus.ONLINE).build();
+                });
         agent.setHostname(dto.getHostname());
         agent.setStatus("alive".equalsIgnoreCase(dto.getStatus())
                 ? Agent.AgentStatus.ONLINE

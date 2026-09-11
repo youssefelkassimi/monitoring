@@ -31,7 +31,7 @@ public class MetricsService {
     private  final RealTimePushService pushService;
 
     @Transactional
-    public void save(MetricsRequestDto dto) {
+    public Metrics save(MetricsRequestDto dto) {
         log.debug("Saving metrics for agentId={}, sentAt={}", dto.getAgentId(), dto.getSentAt());
 
         Agent agent = agentService.touch(dto.getAgentId());
@@ -71,6 +71,7 @@ public class MetricsService {
         pushService.pushService(dto.getChecks().get("services"), saved.getAgent().getAgentId());
         pushService.pushSystem(saved.getSystem(), saved.getAgent().getAgentId());
         log.debug("Pushed metrics/checks/services/system updates for agentId={}", saved.getAgent().getAgentId());
+        return saved;
     }
 
     public Page<Metrics> listForAgent(String agentId, Pageable pageable) {

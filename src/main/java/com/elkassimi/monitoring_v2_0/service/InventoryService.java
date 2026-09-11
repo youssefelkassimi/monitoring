@@ -26,7 +26,7 @@ public class InventoryService {
     private final RealTimePushService pushService;
 
     @Transactional
-    public void save(InventoryRequestDto dto) {
+    public Inventory save(InventoryRequestDto dto) {
         log.debug("Saving inventory for agentId={}, timestamp={}", dto.getAgentId(), dto.getTimestamp());
 
         Agent agent = agentService.touch(dto.getAgentId());
@@ -49,6 +49,7 @@ public class InventoryService {
 
         pushService.pushInventory(saved, dto.getAgentId());
         log.debug("Pushed inventory update for agentId={}", dto.getAgentId());
+        return saved;
     }
 
     public Optional<Inventory> latestForAgent(String agentId) {

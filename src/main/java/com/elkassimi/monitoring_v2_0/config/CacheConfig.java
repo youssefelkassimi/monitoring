@@ -61,6 +61,7 @@ public class CacheConfig {
                 // per-cache override example - shorter TTL for agent lookups
                 // as a staleness backstop alongside the explicit @CacheEvicts.
                 .withCacheConfiguration("agents", defaultConfig.entryTtl(Duration.ofSeconds(30)))
+                .withCacheConfiguration("users", defaultConfig.entryTtl(Duration.ofSeconds(30)))
                 .build();
     }
 }
