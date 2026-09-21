@@ -1,11 +1,11 @@
 package com.elkassimi.monitoring_v2_0.dto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 /** Standard API envelope so every response is consistent. */
-@Setter
-@Getter
+@Data
 public class ApiResponse {
 
     private String status;

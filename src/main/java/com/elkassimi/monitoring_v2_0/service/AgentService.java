@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -100,6 +101,7 @@ public class AgentService {
         agent.setStatus(Agent.AgentStatus.ONLINE);
         agent.setRegisteredAt(TimeUtil.fromEpochSeconds(dto.getRegisteredAt()));
         agent.setLastSeenAt(Instant.now());
+        agent.setTokenExpiresAt(Instant.now().plus(40, ChronoUnit.DAYS));
 
         if (agent.getProvisioningStatus() == null || agent.getProvisioningStatus() == Agent.ProvisioningStatus.PENDING) {
             log.info("Activating agent provisioning status for agentId={}", dto.getAgentId());

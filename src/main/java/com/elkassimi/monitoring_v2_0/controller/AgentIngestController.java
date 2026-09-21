@@ -1,15 +1,6 @@
 package com.elkassimi.monitoring_v2_0.controller;
 
-import com.elkassimi.monitoring_v2_0.dto.AlertsRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.ApiResponse;
-import com.elkassimi.monitoring_v2_0.dto.DiscoveryRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.HeartbeatRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.InventoryRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.LogsRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.MetricsRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.PendingCommandDto;
-import com.elkassimi.monitoring_v2_0.dto.RegistrationRequestDto;
-import com.elkassimi.monitoring_v2_0.dto.RemoteCommandResultDto;
+import com.elkassimi.monitoring_v2_0.dto.*;
 import com.elkassimi.monitoring_v2_0.model.Metrics;
 import com.elkassimi.monitoring_v2_0.service.AgentService;
 import com.elkassimi.monitoring_v2_0.service.AlertService;
@@ -20,6 +11,7 @@ import com.elkassimi.monitoring_v2_0.service.MetricsService;
 import com.elkassimi.monitoring_v2_0.service.RemoteCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +28,7 @@ import java.util.Map;
  * Endpoints and payload shapes here are dictated by that client, not chosen
  * freely - keep this file and sender.py in sync.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -52,6 +45,11 @@ public class AgentIngestController {
     @PostMapping("/agent-register")
     public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegistrationRequestDto dto) throws Exception {
         return ResponseEntity.ok(ApiResponse.ok(agentService.register(dto)));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse> provision (@RequestBody AgentProvisionRequestDto dto){
+        return ResponseEntity.ok(ApiResponse.ok(agentService.provision(dto)));
     }
 
     @PostMapping("/heartbeat")
@@ -98,6 +96,7 @@ public class AgentIngestController {
      */
     @GetMapping("/commands/{agentId}")
     public ResponseEntity<Map<String, List<PendingCommandDto>>> pendingCommands(@PathVariable String agentId) {
+        log.error("agent id: {}",agentId);
         return ResponseEntity.ok(Map.of("commands", remoteCommandService.fetchPending(agentId)));
     }
 
@@ -105,6 +104,7 @@ public class AgentIngestController {
     public ResponseEntity<ApiResponse> commandResult(
             @PathVariable String commandId,
             @Valid @RequestBody RemoteCommandResultDto dto) {
+        log.error("command result: {}",dto);
         remoteCommandService.recordResult(commandId, dto);
         return ResponseEntity.ok(ApiResponse.ok());
     }

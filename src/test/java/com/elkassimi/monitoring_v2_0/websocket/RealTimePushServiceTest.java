@@ -1,5 +1,6 @@
 package com.elkassimi.monitoring_v2_0.websocket;
 
+import com.elkassimi.monitoring_v2_0.dto.UserDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -111,7 +112,7 @@ class RealTimePushServiceTest {
 
     @Test
     void pushUser_broadcastsOnUsersTopic() {
-        Object payload = new Object();
+        UserDto payload = new UserDto("1","test","tes@ts.djjd", "hwhdueufhei",false,"ADMIN");
         pushService.pushUser(payload);
         verify(messaging).convertAndSend(Topics.USERS, payload);
     }

@@ -5,8 +5,9 @@ public final class Topics {
     public static final String METRICS = "/topic/metrics";
     public static final String SYSTEM = "/topic/system";
     public static final String SERVICE = "/topic/service";
-    public static final String USERS = "/topic/user";
+    public static final String USERS = "/topic/users";
     public static final String USERS_UPDATE = "/topic/user_update";
+    public static final String USERS_STATUS_UPDATE = "/topic/user_status_update";
     public static final String ALERTS = "/topic/alerts";
     public static final String HEARTBEATS = "/topic/heartbeats";
     public static final String AGENTS = "/topic/agents";

@@ -13,6 +13,8 @@ public class CommandCreateRequestDto {
     @NotBlank
     private String command;
 
+    private String userId;
+
     private List<String> args;
 
     private Integer timeout;

@@ -13,5 +13,4 @@ public record AgentProvisionRequestDto(
 
         @NotNull @Positive Integer validityMinutes
 
-) {
-}
+) {}

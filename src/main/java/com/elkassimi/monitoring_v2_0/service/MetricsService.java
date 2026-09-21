@@ -68,7 +68,6 @@ public class MetricsService {
 
         pushService.pushMetrics(saved,saved.getAgent().getAgentId());
         pushService.pushChecks(saved.getChecks(), saved.getAgent().getAgentId());
-        pushService.pushService(dto.getChecks().get("services"), saved.getAgent().getAgentId());
         pushService.pushSystem(saved.getSystem(), saved.getAgent().getAgentId());
         log.debug("Pushed metrics/checks/services/system updates for agentId={}", saved.getAgent().getAgentId());
         return saved;

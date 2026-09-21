@@ -1,5 +1,6 @@
 package com.elkassimi.monitoring_v2_0.service;
 
+import com.elkassimi.monitoring_v2_0.dto.UpdateStatusDto;
 import com.elkassimi.monitoring_v2_0.dto.UserDto;
 import com.elkassimi.monitoring_v2_0.model.User;
 import com.elkassimi.monitoring_v2_0.repository.UserRepository;
@@ -44,7 +45,7 @@ public class UserService {
                 .password("")
                 .role(savedUser.getRole().name())
                 .build();
-        pushService.pushToAdmins(saved);
+        pushService.pushUser(saved);
         log.debug("Pushed new user to admins: id={}", saved.id());
         return saved;
     }
@@ -55,7 +56,8 @@ public class UserService {
         log.info("Logging out user id={}", id);
         User user = findOrThrow(id);
         user.setOnline(false);
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        pushService.pushUser(toUserDto(saved));
         log.info("User logged out: id={}, email='{}'", user.getId(), user.getEmail());
     }
 
@@ -78,7 +80,8 @@ public class UserService {
                 savedUser.getId(), savedUser.getEmail(), savedUser.getRole());
 
         UserDto saved = toUserDto(savedUser);
-        pushService.pushToAdmins(saved);
+        pushService.pushUserUpdate(toUserDto(dbUser),dbUser.getId());
+        pushService.pushUser(userDto);
         log.debug("Pushed updated user to admins: id={}", saved.id());
         return saved;
     }
@@ -231,4 +234,7 @@ public class UserService {
     }
 
 
+    public void deleteUser(String id) {
+        userRepository.deleteById(id);
+    }
 }

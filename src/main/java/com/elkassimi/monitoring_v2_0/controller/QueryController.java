@@ -31,7 +31,7 @@ import java.util.Optional;
  * called by the Python agent itself.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/agents")
 @RequiredArgsConstructor
 public class QueryController {
 
@@ -43,52 +43,53 @@ public class QueryController {
     private final AlertService alertService;
     private final RemoteCommandService remoteCommandService;
 
-    @GetMapping("/agents")
+    @GetMapping()
     public ResponseEntity<ApiResponse> listAgents() {
         return ResponseEntity.ok(ApiResponse.ok(agentService.findAll()));
     }
 
-    @GetMapping("/agents/{agentId}")
+    @GetMapping("/{agentId}")
     public ResponseEntity<ApiResponse> getAgent(@PathVariable String agentId) {
         return ResponseEntity.ok(ApiResponse.ok(agentService.getByAgentId(agentId)));
     }
 
-    @GetMapping("/agents/{agentId}/metrics")
+    @GetMapping("/{agentId}/metrics")
     public ResponseEntity<ApiResponse> listMetrics(
             @PathVariable String agentId,
-            @PageableDefault(size = 50) Pageable pageable) {
+             Pageable pageable) {
+        System.out.println(pageable);
         return ResponseEntity.ok(ApiResponse.ok(metricsService.listForAgent(agentId, pageable)));
     }
 
-    @GetMapping("/agents/{agentId}/metrics/latest")
+    @GetMapping("/{agentId}/metrics/latest")
     public ResponseEntity<ApiResponse> latestMetrics(@PathVariable String agentId) {
         Optional<?> latest = metricsService.latestForAgent(agentId);
         return latest.<ResponseEntity<ApiResponse>>map(m -> ResponseEntity.ok(ApiResponse.ok(m)))
                 .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
     }
 
-    @GetMapping("/agents/{agentId}/inventory/latest")
+    @GetMapping("/{agentId}/inventory/latest")
     public ResponseEntity<ApiResponse> latestInventory(@PathVariable String agentId) {
         Optional<?> latest = inventoryService.latestForAgent(agentId);
         return latest.<ResponseEntity<ApiResponse>>map(i -> ResponseEntity.ok(ApiResponse.ok(i)))
                 .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
     }
 
-    @GetMapping("/agents/{agentId}/discovery")
+    @GetMapping("/{agentId}/discovery")
     public ResponseEntity<ApiResponse> listDiscovery(
             @PathVariable String agentId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok(discoveryService.listForAgent(agentId, pageable)));
     }
 
-    @GetMapping("/agents/{agentId}/logs")
+    @GetMapping("/{agentId}/logs")
     public ResponseEntity<ApiResponse> listLogs(
             @PathVariable String agentId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok(logService.listForAgent(agentId, pageable)));
     }
 
-    @GetMapping("/agents/{agentId}/alerts")
+    @GetMapping("/{agentId}/alerts")
     public ResponseEntity<ApiResponse> listAgentAlerts(
             @PathVariable String agentId,
             @PageableDefault(size = 50) Pageable pageable) {
@@ -106,14 +107,14 @@ public class QueryController {
         return ResponseEntity.ok(ApiResponse.ok(alertService.listByStatus(parsed, pageable)));
     }
 
-    @PostMapping("/agents/{agentId}/commands")
+    @PostMapping("/{agentId}/commands")
     public ResponseEntity<ApiResponse> queueCommand(
             @PathVariable String agentId,
             @Valid @RequestBody CommandCreateRequestDto dto) {
         return ResponseEntity.ok(ApiResponse.ok(remoteCommandService.queue(agentId, dto)));
     }
 
-    @GetMapping("/agents/{agentId}/commands")
+    @GetMapping("/{agentId}/commands")
     public ResponseEntity<ApiResponse> listCommands(
             @PathVariable String agentId,
             @PageableDefault(size = 20) Pageable pageable) {

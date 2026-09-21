@@ -1,6 +1,5 @@
 package com.elkassimi.monitoring_v2_0.dto;
 
-import com.elkassimi.monitoring_v2_0.model.User;
 import lombok.Builder;
 
 @Builder

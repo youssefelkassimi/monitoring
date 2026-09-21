@@ -1,6 +1,7 @@
 package com.elkassimi.monitoring_v2_0.websocket;
 
 
+import com.elkassimi.monitoring_v2_0.dto.UpdateStatusDto;
 import com.elkassimi.monitoring_v2_0.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class RealTimePushService {
     public void pushSystem(Object system, String agent){
         pushAgent(system,Topics.SYSTEM,agent );
     }
-    public void pushUser(Object user){
+    public void pushUser(UserDto user){
         push(user,Topics.USERS);
     }
     public void pushService(Object service, String user){
@@ -105,9 +106,15 @@ public class RealTimePushService {
         pushAgent(result, Topics.COMMAND_RESULT, agent);
     }
 
+    public void pushCommandResultToUser(Object result, String agent, String userid) {
+        pushToUser(result, Topics.COMMAND_RESULT + "/" + agent, userid );
+    }
+
+
     public void pushAnomaly(Object anomaly, String agent) {
         pushAgent(anomaly, Topics.ANOMALY, agent);
     }
+
 
     /** Broadcasts to Topics.ADMIN - see the javadoc there for what this
      * does and doesn't guarantee without a real auth layer. */
@@ -135,5 +142,9 @@ public class RealTimePushService {
      */
     public void pushToTopic(String topic, Object message) {
         push(message, topic);
+    }
+
+    public void pushUserStatusUpdate(UpdateStatusDto message) {
+        push(message, Topics.USERS_STATUS_UPDATE);
     }
 }

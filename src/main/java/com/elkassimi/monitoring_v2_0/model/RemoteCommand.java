@@ -39,8 +39,11 @@ public class RemoteCommand {
     @JoinColumn(name = "agent_id", nullable = false)
     private Agent agent;
 
-    /** Bare command name; the agent only executes it if it's on its own
-     * config.yaml allow list, matched by basename. */
+    @ManyToOne
+    @JoinColumn(name = "user_id",nullable = false)
+    private User user;
+
+
     @Column(nullable = false)
     private String command;
 

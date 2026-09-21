@@ -126,7 +126,7 @@ public class RemoteCommandService {
                 saved.getId(), command.getAgent().getAgentId(), saved.getCommand(),
                 saved.getStatus(), saved.getExitCode());
 
-        pushService.pushCommandResult(saved, command.getAgent().getAgentId());
+        pushService.pushCommandResultToUser(saved, command.getAgent().getAgentId(), saved.getUser().getId());
         log.debug("Pushed command result to real-time clients: id={}, agentId={}",
                 saved.getId(), command.getAgent().getAgentId());
 

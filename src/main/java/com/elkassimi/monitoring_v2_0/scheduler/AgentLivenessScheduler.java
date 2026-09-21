@@ -1,5 +1,6 @@
 package com.elkassimi.monitoring_v2_0.scheduler;
 
+import com.elkassimi.monitoring_v2_0.dto.UpdateStatusDto;
 import com.elkassimi.monitoring_v2_0.model.Agent;
 import com.elkassimi.monitoring_v2_0.repository.AgentRepository;
 import com.elkassimi.monitoring_v2_0.websocket.RealTimePushService;
@@ -63,7 +64,9 @@ public class AgentLivenessScheduler {
         }
 
         log.info("Marked {} agent(s) offline after going silent", newlyOffline.size());
-        newlyOffline.forEach(pushService::pushAgentUpdate);
-        pushService.pushAgents(newlyOffline);
+        newlyOffline.stream()
+                .map(agent ->new UpdateStatusDto(agent.getAgentId(), false))
+                .forEach(pushService::pushAgentUpdate);
+//        pushService.pushAgents(newlyOffline);
     }
 }
