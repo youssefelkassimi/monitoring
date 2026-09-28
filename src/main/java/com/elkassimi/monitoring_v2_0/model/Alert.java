@@ -19,8 +19,6 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
-/** A single trigger-fired or trigger-recovered event, as produced by the
- * agent's TriggerEngine and posted to /api/alerts. */
 @Entity
 @Getter
 @Setter
@@ -60,10 +58,8 @@ public class Alert {
     @Enumerated(EnumType.STRING)
     private AlertStatus status;
 
-    /** When the agent's trigger engine evaluated this event. */
     private Instant timestamp;
 
-    /** When this row was persisted on the backend. */
     @Column(name = "received_at")
     private Instant receivedAt;
 

@@ -21,7 +21,6 @@ public class MetricsRequestDto {
     @JsonProperty("sent_at")
     private Double sentAt;
 
-    /** Nested system/checks/plugins metrics. */
     private Map<String, Object> system;
     private Map<String, Object> checks;
     private Map<String, Object> plugins;

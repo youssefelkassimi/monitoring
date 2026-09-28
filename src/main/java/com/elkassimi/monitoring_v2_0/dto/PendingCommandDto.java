@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** One entry returned to the agent by GET /api/commands/{agentId} - shape
- * expected by main.py's _remote_command_loop (cmd.get("id"/"command"/"args"/"timeout")). */
 @Data
 @Builder
 @NoArgsConstructor

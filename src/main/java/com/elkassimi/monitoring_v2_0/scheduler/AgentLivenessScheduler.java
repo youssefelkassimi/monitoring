@@ -64,8 +64,8 @@ public class AgentLivenessScheduler {
         }
 
         log.info("Marked {} agent(s) offline after going silent", newlyOffline.size());
-        newlyOffline.stream()
-                .map(agent ->new UpdateStatusDto(agent.getAgentId(), false))
+        newlyOffline
+//                .map(agent ->new UpdateStatusDto(agent.getAgentId(), false))
                 .forEach(pushService::pushAgentUpdate);
 //        pushService.pushAgents(newlyOffline);
     }

@@ -35,13 +35,15 @@ class RemoteCommandServiceTest {
     private AgentService agentService;
     @Mock
     private RealTimePushService pushService;
+    @Mock
+    private UserService userService;
 
     private RemoteCommandService service() {
-        return new RemoteCommandService(remoteCommandRepository, agentService, new ObjectMapper(), pushService);
+        return new RemoteCommandService(remoteCommandRepository, agentService, new ObjectMapper(), userService, pushService);
     }
 
     @Test
-    void queue_createsPendingCommandWithSerializedArgsAndPushes() {
+    void queue_createsPendingCommandWithSerializedArgsAndPushes() throws Exception {
         RemoteCommandService svc = service();
         Agent agent = Agent.builder().agentId("agt-1").build();
         when(agentService.getByAgentId("agt-1")).thenReturn(agent);
@@ -63,7 +65,7 @@ class RemoteCommandServiceTest {
     }
 
     @Test
-    void queue_nullTimeout_defaultsTo30() {
+    void queue_nullTimeout_defaultsTo30() throws Exception {
         RemoteCommandService svc = service();
         when(agentService.getByAgentId("agt-2")).thenReturn(Agent.builder().agentId("agt-2").build());
         when(remoteCommandRepository.save(any(RemoteCommand.class))).thenAnswer(inv -> inv.getArgument(0));

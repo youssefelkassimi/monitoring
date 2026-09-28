@@ -24,7 +24,6 @@ public class RegistrationRequestDto {
     @JsonProperty("python_version")
     private String pythonVersion;
 
-    /** Epoch seconds, as sent by platform.python_version()-side time.time(). */
     @JsonProperty("registered_at")
     private Double registeredAt;
 

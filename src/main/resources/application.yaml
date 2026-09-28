@@ -68,3 +68,8 @@ logging:
         monitoring_v2_0:
           websocket:
             RealTimePushService: TRACE
+
+app:
+  security:
+    jwt-secret: ${JWT_SECRET:CqG349LQVPaCdhpnwEpweSknFMGadqrSQVi67S30SHDmlJW87AHHFLxa3ficqs1Dnzq4z7+ewDB2vFWUBtIxWA}
+    user-token-lifetime: ${JWT_USER_TOKEN_LIFETIME:PT8H}

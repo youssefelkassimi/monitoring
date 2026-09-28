@@ -71,9 +71,7 @@ public class RealTimePushService {
     public void pushUser(UserDto user){
         push(user,Topics.USERS);
     }
-    public void pushService(Object service, String user){
-        pushAgent(service,Topics.SERVICE, user);
-    }
+    public void pushService(Object service, String user){pushAgent(service,Topics.SERVICE, user);}
     public void pushChecks(Object checks, String agent){
         pushAgent(checks,Topics.SERVICE, agent);
     }
@@ -96,12 +94,10 @@ public class RealTimePushService {
         pushAgent(logs, Topics.LOGS, agent);
     }
 
-    /** A command was queued for an agent (used to refresh "Recent RPC Executions"). */
     public void pushCommand(Object command, String agent) {
         pushAgent(command, Topics.COMMANDS, agent);
     }
 
-    /** An agent reported back a command result. */
     public void pushCommandResult(Object result, String agent) {
         pushAgent(result, Topics.COMMAND_RESULT, agent);
     }
@@ -116,33 +112,16 @@ public class RealTimePushService {
     }
 
 
-    /** Broadcasts to Topics.ADMIN - see the javadoc there for what this
-     * does and doesn't guarantee without a real auth layer. */
+
     public void pushToAdmins(Object message) {
         push(message, Topics.ADMIN);
     }
 
-    // ------------------------------------------------------------------
-    // Additions (not present before). Remove if you don't want them.
-    // ------------------------------------------------------------------
 
-    /**
-     * Existence check for a user/topic pair, mirroring the other primitives.
-     * Not currently used by any caller in the classes I've seen, but handy
-     * if you ever want to fan out an update to a specific user's own topic
-     * (e.g. their ALERTS tab) rather than a dashboard-wide broadcast.
-     */
     public void pushToUser(String topic, String user, Object message) {
         pushToUser(message, topic, user);
     }
 
-    /**
-     * Push a payload to every subscriber of an arbitrary topic. Thin wrapper
-     * so callers don't have to remember argument order of the private push.
-     */
-    public void pushToTopic(String topic, Object message) {
-        push(message, topic);
-    }
 
     public void pushUserStatusUpdate(UpdateStatusDto message) {
         push(message, Topics.USERS_STATUS_UPDATE);

@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,21 +35,17 @@ public class AgentService {
     private final HeartbeatRepository heartbeatRepository;
     private final RealTimePushService pushService;
     private final AgentLivenessCache livenessCache;
+    private final JwtService jwtService;
 
 
-    /** Admin-facing "+ Add Agent" action. Creates a placeholder Agent row
-     * with a freshly generated agentId + one-time token, both handed back
-     * to the caller exactly once so they can be dropped into the physical
-     * machine's config.yaml before this response is discarded. */
     @Transactional
     @CacheEvict(value = "agents", allEntries = true)
     public AgentProvisionResponseDto provision(AgentProvisionRequestDto dto) {
         log.info("Provisioning new agent with label='{}', validityMinutes={}", dto.label(), dto.validityMinutes());
 
-        String agentId =  UUID.randomUUID().toString();
-        //will change it in future with security
-        String token =  "kdk";
+        String agentId = UUID.randomUUID().toString();
         Instant expiresAt = Instant.now().plusSeconds(dto.validityMinutes() * 60L);
+        String token = jwtService.createAgentToken(agentId, expiresAt);
 
         Agent agent = Agent.builder()
                 .agentId(agentId)
@@ -56,6 +53,7 @@ public class AgentService {
                 .status(Agent.AgentStatus.OFFLINE)
                 .provisioningStatus(Agent.ProvisioningStatus.PENDING)
                 .tokenExpiresAt(expiresAt)
+                .tokenHash(TokenHash.sha256(token))
                 .build();
 
         Agent saved = agentRepository.save(agent);
@@ -72,8 +70,6 @@ public class AgentService {
                 .build();
     }
 
-    /** Registers a new agent, or refreshes an already-known one (the Python
-     * agent re-registers on every restart - main.py: auto_register). */
     @Transactional
     @CacheEvict(value = "agents", allEntries = true)
     public Agent register(RegistrationRequestDto dto) throws Exception {
@@ -232,6 +228,25 @@ public class AgentService {
         long count = findByStatus(Agent.AgentStatus.ONLINE).size();
         log.debug("Online agent count={}", count);
         return count;
+    }
+
+    @CacheEvict(value = "agents", key = "#agentId")
+    public void toggleRevokeAgent(String agentId) throws Exception{
+        log.info("toggle revoke for agent with id: {}",agentId);
+        Agent agent = findOrThrow(agentId);
+        Agent.ProvisioningStatus status =
+                agent.getProvisioningStatus().equals(Agent.ProvisioningStatus.REVOKED) ?
+                        Agent.ProvisioningStatus.PENDING : Agent.ProvisioningStatus.REVOKED;
+        agent.setProvisioningStatus(status);
+        Agent saved =agentRepository.save(agent);
+        pushService.pushAgentUpdate(saved);
+
+    }
+
+    private Agent findOrThrow(String agentId) throws Exception{
+        log.info("Get agent with id: {} from database",agentId);
+        return agentRepository.findByAgentId(agentId)
+                .orElseThrow(()->new Exception("agent not foud with id: "+agentId));
     }
 
 }

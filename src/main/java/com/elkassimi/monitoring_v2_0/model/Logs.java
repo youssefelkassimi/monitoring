@@ -37,7 +37,6 @@ public class Logs {
 
     private Instant timestamp;
 
-    /** Raw list of per-watched-file log check results, stored as-is. */
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "payload_json", nullable = false)
     private String payloadJson;

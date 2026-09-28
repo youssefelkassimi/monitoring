@@ -40,6 +40,8 @@ class AgentServiceTest {
     private RealTimePushService pushService;
     @Mock
     private AgentLivenessCache livenessCache;
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private AgentService agentService;
@@ -49,6 +51,7 @@ class AgentServiceTest {
     @Test
     void provision_createsAgentAndReturnsIdAndToken() {
         when(agentRepository.save(any(Agent.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(jwtService.createAgentToken(any(String.class), any())).thenReturn("agent-jwt");
 
         AgentProvisionRequestDto dto = new AgentProvisionRequestDto("prod-db-primary-01",30);
 

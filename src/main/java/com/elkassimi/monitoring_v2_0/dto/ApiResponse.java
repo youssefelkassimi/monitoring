@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Standard API envelope so every response is consistent. */
 @Data
 public class ApiResponse {
 

@@ -5,8 +5,6 @@ import lombok.Data;
 
 import java.util.Map;
 
-/** sender.py: send_discovery(); covers both network-sweep and open-service
- * discovery results, which share the same envelope on the agent side. */
 @Data
 public class DiscoveryRequestDto {
 

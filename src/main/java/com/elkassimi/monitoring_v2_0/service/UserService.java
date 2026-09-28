@@ -1,6 +1,5 @@
 package com.elkassimi.monitoring_v2_0.service;
 
-import com.elkassimi.monitoring_v2_0.dto.UpdateStatusDto;
 import com.elkassimi.monitoring_v2_0.dto.UserDto;
 import com.elkassimi.monitoring_v2_0.model.User;
 import com.elkassimi.monitoring_v2_0.repository.UserRepository;
@@ -11,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -21,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RealTimePushService pushService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
@@ -199,7 +200,7 @@ public class UserService {
     }
 
 
-    private User findOrThrow(String id) throws Exception {
+    public User findOrThrow(String id) throws Exception {
         log.trace("Looking up user by id={}", id);
         return userRepository.findById(id)
                 .orElseThrow(()-> {
@@ -216,6 +217,7 @@ public class UserService {
         return  User.builder()
                 .fullName(userDto.fullName())
                 .email(userDto.email())
+                .password(passwordEncoder.encode(userDto.password()))
                 .role(User.role.valueOf(userDto.role()))
                 .isOnline(false)
                 .build();

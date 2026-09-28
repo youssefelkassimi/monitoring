@@ -37,9 +37,7 @@ public class Discovery {
 
     private Instant timestamp;
 
-    /** Raw discovery payload (network sweep or open-service scan) as sent by
-     * the agent, stored as-is so the schema doesn't need to track every
-     * collector-side field. */
+
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "payload_json", nullable = false)
     private String payloadJson;

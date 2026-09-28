@@ -7,11 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -22,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class Agent {
 
     @Id
@@ -57,6 +54,9 @@ public class Agent {
 
     @Column(name = "token_expires_at")
     private Instant tokenExpiresAt;
+
+    @Column(name = "token_hash")
+    private String tokenHash;
 
     @Column(name = "registered_at")
     private Instant registeredAt;

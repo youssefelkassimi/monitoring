@@ -3,6 +3,7 @@ package com.elkassimi.monitoring_v2_0.service;
 import com.elkassimi.monitoring_v2_0.dto.DiscoveryRequestDto;
 import com.elkassimi.monitoring_v2_0.model.Agent;
 import com.elkassimi.monitoring_v2_0.model.Discovery;
+import com.elkassimi.monitoring_v2_0.model.Inventory;
 import com.elkassimi.monitoring_v2_0.repository.DiscoveryRepository;
 import com.elkassimi.monitoring_v2_0.util.JsonUtil;
 import com.elkassimi.monitoring_v2_0.util.TimeUtil;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,5 +63,17 @@ public class DiscoveryService {
         log.debug("Listed {} discovery records (total={}) for agentId={}",
                 page.getNumberOfElements(), page.getTotalElements(), agentId);
         return page;
+    }
+
+    public Optional<Discovery> latestForAgent(String agentId) {
+        log.debug("Fetching latest discovery for agentId={}", agentId);
+        Optional<Discovery> latest = discoveryRepository.findFirstByAgent_AgentIdOrderByTimestampDesc(agentId);
+        if (latest.isEmpty()) {
+            log.debug("No discovery found for agentId={}", agentId);
+        } else {
+            log.trace("Latest discovery for agentId={}: id={}, timestamp={}",
+                    agentId, latest.get().getId(), latest.get().getTimestamp());
+        }
+        return latest;
     }
 }

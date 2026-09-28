@@ -63,11 +63,9 @@ public class RemoteCommand {
     @Column(name = "created_at")
     private Instant createdAt;
 
-    /** When the backend handed this command to the agent on a poll. */
     @Column(name = "sent_at")
     private Instant sentAt;
 
-    /** When the agent reported a result back. */
     @Column(name = "executed_at")
     private Instant executedAt;
 

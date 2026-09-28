@@ -37,8 +37,7 @@ public class Inventory {
 
     private Instant timestamp;
 
-    /** Raw host inventory blob (hardware, OS, installed software, interfaces...)
-     * stored as-is so the schema doesn't have to mirror every field. */
+
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "payload_json", nullable = false)
     private String payloadJson;

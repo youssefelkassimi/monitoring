@@ -3,6 +3,7 @@ package com.elkassimi.monitoring_v2_0.controller;
 import com.elkassimi.monitoring_v2_0.dto.ApiResponse;
 import com.elkassimi.monitoring_v2_0.dto.CommandCreateRequestDto;
 import com.elkassimi.monitoring_v2_0.model.Alert;
+import com.elkassimi.monitoring_v2_0.model.Metrics;
 import com.elkassimi.monitoring_v2_0.service.AgentService;
 import com.elkassimi.monitoring_v2_0.service.AlertService;
 import com.elkassimi.monitoring_v2_0.service.DiscoveryService;
@@ -12,16 +13,11 @@ import com.elkassimi.monitoring_v2_0.service.MetricsService;
 import com.elkassimi.monitoring_v2_0.service.RemoteCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
@@ -30,6 +26,7 @@ import java.util.Optional;
  * agents and their history, plus queuing remote commands. Nothing here is
  * called by the Python agent itself.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/agents")
 @RequiredArgsConstructor
@@ -68,6 +65,20 @@ public class QueryController {
                 .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
     }
 
+    @GetMapping("/{agentId}/service/latest")
+    public ResponseEntity<ApiResponse> latestService(@PathVariable String agentId) {
+        Optional<Metrics> latest = metricsService.latestForAgent(agentId);
+        return latest.<ResponseEntity<ApiResponse>>map(m -> ResponseEntity.ok(ApiResponse.ok(m.getChecks())))
+                .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
+    }
+
+    @GetMapping("/{agentId}/system/latest")
+    public ResponseEntity<ApiResponse> latestSystem(@PathVariable String agentId) {
+        Optional<Metrics> latest = metricsService.latestForAgent(agentId);
+        return latest.<ResponseEntity<ApiResponse>>map(m -> ResponseEntity.ok(ApiResponse.ok(m.getSystem())))
+                .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
+    }
+
     @GetMapping("/{agentId}/inventory/latest")
     public ResponseEntity<ApiResponse> latestInventory(@PathVariable String agentId) {
         Optional<?> latest = inventoryService.latestForAgent(agentId);
@@ -80,6 +91,13 @@ public class QueryController {
             @PathVariable String agentId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok(discoveryService.listForAgent(agentId, pageable)));
+    }
+
+    @GetMapping("/{agentId}/discovery/latest")
+    public ResponseEntity<ApiResponse> latestDiscovery(@PathVariable String agentId) {
+        Optional<?> latest = discoveryService.latestForAgent(agentId);
+        return latest.<ResponseEntity<ApiResponse>>map(i -> ResponseEntity.ok(ApiResponse.ok(i)))
+                .orElseGet(() -> ResponseEntity.ok(ApiResponse.ok(null)));
     }
 
     @GetMapping("/{agentId}/logs")
@@ -110,7 +128,8 @@ public class QueryController {
     @PostMapping("/{agentId}/commands")
     public ResponseEntity<ApiResponse> queueCommand(
             @PathVariable String agentId,
-            @Valid @RequestBody CommandCreateRequestDto dto) {
+            @Valid @RequestBody CommandCreateRequestDto dto) throws Exception {
+        log.error("args:{}",dto.getArgs());
         return ResponseEntity.ok(ApiResponse.ok(remoteCommandService.queue(agentId, dto)));
     }
 
@@ -119,5 +138,17 @@ public class QueryController {
             @PathVariable String agentId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok(remoteCommandService.listForAgent(agentId, pageable)));
+    }
+
+
+
+    @DeleteMapping("/{agentId}")
+    public void deleteAgentById(@PathVariable String agentId){
+
+    }
+
+    @PatchMapping("/{agentId}/toggleRevokeStatus")
+    public void toggleRevokeAgent(@PathVariable String agentId) throws Exception {
+        agentService.toggleRevokeAgent(agentId);
     }
 }

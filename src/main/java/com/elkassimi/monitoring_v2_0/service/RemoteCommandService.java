@@ -35,10 +35,11 @@ public class RemoteCommandService {
     private final RemoteCommandRepository remoteCommandRepository;
     private final AgentService agentService;
     private final ObjectMapper objectMapper;
+    private  final UserService userService;
     private final RealTimePushService pushService;
 
     @Transactional
-    public RemoteCommand queue(String agentId, CommandCreateRequestDto dto) {
+    public RemoteCommand queue(String agentId, CommandCreateRequestDto dto) throws Exception {
         log.info("Queueing remote command for agentId={}, command='{}', timeout={}",
                 agentId, dto.getCommand(), dto.getTimeout());
 
@@ -47,6 +48,7 @@ public class RemoteCommandService {
         RemoteCommand command = RemoteCommand.builder()
                 .agent(agent)
                 .command(dto.getCommand())
+                .user(userService.findOrThrow(dto.getUserId()))
                 .argsJson(JsonUtil.toJson(objectMapper, dto.getArgs()))
                 .timeout(dto.getTimeout() != null ? dto.getTimeout() : 30)
                 .status(RemoteCommand.CommandStatus.PENDING)
@@ -127,6 +129,7 @@ public class RemoteCommandService {
                 saved.getStatus(), saved.getExitCode());
 
         pushService.pushCommandResultToUser(saved, command.getAgent().getAgentId(), saved.getUser().getId());
+        pushService.pushCommandResult(saved, saved.getAgent().getAgentId());
         log.debug("Pushed command result to real-time clients: id={}, agentId={}",
                 saved.getId(), command.getAgent().getAgentId());
 

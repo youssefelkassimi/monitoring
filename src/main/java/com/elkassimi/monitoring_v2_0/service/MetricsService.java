@@ -66,6 +66,7 @@ public class MetricsService {
         Metrics saved = metricsRepository.save(metrics);
         log.info("Metrics saved: id={}, agentId={}", saved.getId(), saved.getAgent().getAgentId());
 
+        log.error("Metrics saved: id={}",saved.getChecks());
         pushService.pushMetrics(saved,saved.getAgent().getAgentId());
         pushService.pushChecks(saved.getChecks(), saved.getAgent().getAgentId());
         pushService.pushSystem(saved.getSystem(), saved.getAgent().getAgentId());

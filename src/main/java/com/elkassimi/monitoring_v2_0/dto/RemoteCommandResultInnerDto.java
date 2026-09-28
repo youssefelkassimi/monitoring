@@ -3,8 +3,6 @@ package com.elkassimi.monitoring_v2_0.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-/** The "result" object inside RemoteCommandResultDto - mirrors
- * RemoteCommandHandler.execute()'s return shape on the agent side. */
 @Data
 public class RemoteCommandResultInnerDto {
 

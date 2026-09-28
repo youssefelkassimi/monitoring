@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,8 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private RealTimePushService pushService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserService userService;
@@ -47,6 +50,7 @@ class UserServiceTest {
     @Test
     void register_newEmail_savesAndPushesToAdminsAndClearsPassword() throws Exception {
         when(userRepository.existsByEmail("alex@fleet.internal")).thenReturn(false);
+        when(passwordEncoder.encode("temp-pass")).thenReturn("encoded-password");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             u.setId("u-1");
