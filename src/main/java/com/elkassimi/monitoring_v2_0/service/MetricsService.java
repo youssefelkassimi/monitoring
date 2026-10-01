@@ -1,5 +1,6 @@
 package com.elkassimi.monitoring_v2_0.service;
 
+import com.elkassimi.monitoring_v2_0.dto.AnomalyEvent;
 import com.elkassimi.monitoring_v2_0.dto.MetricsRequestDto;
 import com.elkassimi.monitoring_v2_0.model.Agent;
 import com.elkassimi.monitoring_v2_0.model.Metrics;
@@ -10,6 +11,7 @@ import com.elkassimi.monitoring_v2_0.websocket.RealTimePushService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -29,6 +32,7 @@ public class MetricsService {
     private final AgentService agentService;
     private final ObjectMapper objectMapper;
     private  final RealTimePushService pushService;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public Metrics save(MetricsRequestDto dto) {
@@ -66,11 +70,25 @@ public class MetricsService {
         Metrics saved = metricsRepository.save(metrics);
         log.info("Metrics saved: id={}, agentId={}", saved.getId(), saved.getAgent().getAgentId());
 
-        log.error("Metrics saved: id={}",saved.getChecks());
         pushService.pushMetrics(saved,saved.getAgent().getAgentId());
         pushService.pushChecks(saved.getChecks(), saved.getAgent().getAgentId());
         pushService.pushSystem(saved.getSystem(), saved.getAgent().getAgentId());
         log.debug("Pushed metrics/checks/services/system updates for agentId={}", saved.getAgent().getAgentId());
+
+
+        if(dto.getSystem() != null){
+        Map<String, Object> metric = Map.of(
+                "agnet.id" , saved.getAgent().getAgentId(),
+                "system.cpu.cpu_percent", saved.getCpuPercent(),
+                "system.memory.percent", saved.getMemoryPercent(),
+                "system.disk_usage.0.percent", Objects.requireNonNullElse(FistDiskPercent(dto.getSystem()), 0),
+                "system.network.total_errin", nestedInteger(dto.getSystem(),"network", "total_errin"),
+                "system.processes.total_count", saved.getProcessCount(),
+                "system.cpu.load_avg.0", saved.getLoadAvg(),
+                "system.memory.swap_percent", Objects.requireNonNullElse(nestedDouble(dto.getSystem(), "memory", "swap_percent"), 0)
+        );
+        publisher.publishEvent(new AnomalyEvent(saved.getAgent().getAgentId(), metric));
+        }
         return saved;
     }
 
@@ -117,22 +135,47 @@ public class MetricsService {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private Double firstLoadAvg(Map<String, Object> system) {
         if (system == null) {
-            log.trace("firstLoadAvg: system map is null");
             return null;
         }
-        Object loadAvg = system.get("load_avg");
-        if (loadAvg instanceof List<?> list && !list.isEmpty()) {
-            Double result = toDouble(list.get(0));
-            log.trace("firstLoadAvg: parsed from top-level load_avg list = {}", result);
+        // 1. top-level load_avg
+        Double result = firstOfList(system.get("load_avg"));
+        if (result != null) {
             return result;
         }
-        // load_avg can also live nested under "cpu" depending on collector config.
-        Double result = nestedDouble(system, "cpu", "load_avg");
-        log.trace("firstLoadAvg: falling back to nested cpu.load_avg = {}", result);
+        // 2. nested under cpu
+        Object cpu = system.get("cpu");
+        if (cpu instanceof Map<?, ?> cpuMap) {
+            result = firstOfList(cpuMap.get("load_avg"));
+        }
+        log.trace("firstLoadAvg: nested cpu.load_avg first element = {}", result);
         return result;
+    }
+
+    private Double firstOfList(Object value) {
+        if (value instanceof List<?> list && !list.isEmpty()) {
+            return toDouble(list.get(0));
+        }
+        return null;
+    }
+
+    private Double FistDiskPercent(Map<String, Object> system){
+        if (system == null) {
+            log.trace("FistDiskPercent: system map is null");
+            return null;
+        }
+        Object diskUsage = system.get("disk_usage");
+        if (diskUsage instanceof List<?> list && !list.isEmpty()) {
+            Object firstDisk = list.get(0);
+            if(firstDisk instanceof Map){
+                Double result = toDouble( ((Map<?, ?>) firstDisk).get("percent"));
+                log.info("FistDiskPercent: parsed from top-level disk_usage list = {}", result);
+                return  result;
+            }
+            return null;
+        }
+        return  null;
     }
 
     private Double toDouble(Object value) {

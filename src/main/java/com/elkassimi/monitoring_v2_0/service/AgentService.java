@@ -243,7 +243,7 @@ public class AgentService {
 
     }
 
-    private Agent findOrThrow(String agentId) throws Exception{
+    public Agent findOrThrow(String agentId) throws Exception{
         log.info("Get agent with id: {} from database",agentId);
         return agentRepository.findByAgentId(agentId)
                 .orElseThrow(()->new Exception("agent not foud with id: "+agentId));

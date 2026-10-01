@@ -29,13 +29,12 @@ public class Runner implements CommandLineRunner {
     private final MetricsService metricsService;
     private final QueryController queryController;
 
-
     @Override
     public void run(String... args) throws Exception {
 
         try {
             UserDto user = UserDto.builder()
-                    .email("")
+                    .email("youssef@elkassimi.ma")
                     .role("ADMIN")
                     .fullName("yousser")
                     .password("12345678")
@@ -47,10 +46,9 @@ public class Runner implements CommandLineRunner {
 
         }
 
-        AgentProvisionRequestDto ag = new AgentProvisionRequestDto("youssef", 60*30*12);
+        AgentProvisionRequestDto ag = new AgentProvisionRequestDto("youssef", 60 * 30 * 12);
 
-//        System.out.println(agentService.provision(ag));
-
+        // System.out.println(agentService.provision(ag));
 
     }
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,16 @@ class MetricsServiceTest {
     private AgentService agentService;
     @Mock
     private RealTimePushService pushService;
+    @Mock
+    private ApplicationEventPublisher publisher;
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private MetricsService metricsService;
 
     private MetricsService service() {
-        return new MetricsService(metricsRepository, agentService, objectMapper, pushService);
+        return new MetricsService(metricsRepository, agentService, objectMapper, pushService,publisher);
     }
 
     @Test

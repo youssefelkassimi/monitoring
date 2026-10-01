@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      SERVER_PORT: 8080
+      DB_URL: ${DB_URL:-jdbc:postgresql://host.docker.internal:5432/monitorV1}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-1111}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-CqG349LQVPaCdhpnwEpweSknFMGadqrSQVi67S30SHDmlJW87AHHFLxa3ficqs1Dnzq4z7+ewDB2vFWUBtIxWA}
+      ANOMALY_API_BASE_URL: ${ANOMALY_API_BASE_URL:-http://host.docker.internal:5001}
+      ANOMALY_API_KEY: ${ANOMALY_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: >-
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then
+      redis-server --requirepass "$$REDIS_PASSWORD";
+      else redis-server;
+      fi'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: >-
+        if [ -n "$$REDIS_PASSWORD" ]; then
+        redis-cli -a "$$REDIS_PASSWORD" ping;
+        else redis-cli ping;
+        fi
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  redis-data:

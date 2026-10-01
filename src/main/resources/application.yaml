@@ -6,9 +6,9 @@ spring:
     name: monitoring_v2
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/monitorV1}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:1111}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password:  ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -24,29 +24,24 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6375}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-
-#  flyway:
+      
+  threads:
+    virtual:
+      enabled: true
+  
+  #  flyway:
 #    enabled: false
 #    locations: classpath:db/migration
 
   jackson:
     default-property-inclusion: non_null
 
-#app:
-#  # Location of the anomaly_server Python service (Random Forest).
-#  anomaly:
-#    url: ${ANOMALY_URL:http://localhost:5001}
-#    enabled: ${ANOMALY_ENABLED:false}
-#    # Optional bearer token if the anomaly server requires auth.
-#    api_key: ${ANOMALY_API_KEY:}
-#    # Run anomaly evaluation every N seconds over recently received samples.
-#    scan_interval_ms: 15000
-#    # Min samples before a prediction is meaningful enough to alert.
-#    min_samples: 50
-#    # Alert only for anomaly probability at or above this threshold.
-#    alert_threshold: 0.8
+anomaly:
+  base-url: ${ANOMALY_API_BASE_URL:http://127.0.0.1:5001}
+  api-key: ${ANOMALY_API_KEY:}
+  confirm: 2
 
   websocket:
     topic: "/topic/metrics"
@@ -61,13 +56,13 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-logging:
-  level:
-    com:
-      elkassimi:
-        monitoring_v2_0:
-          websocket:
-            RealTimePushService: TRACE
+#logging:
+#  level:
+#    com:
+#      elkassimi:
+#        monitoring_v2_0:
+#          websocket:
+#            RealTimePushService: TRACE
 
 app:
   security:
