@@ -29,8 +29,13 @@ public class Runner implements CommandLineRunner {
     private final MetricsService metricsService;
     private final QueryController queryController;
 
+    @Value("${spring.data.redis.host}") String host;
+    @Value("${spring.data.redis.port}") int port;
+
     @Override
     public void run(String... args) throws Exception {
+
+        System.out.println("REDIS TARGET = " + host + ":" + port);
 
         try {
             UserDto user = UserDto.builder()
