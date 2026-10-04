@@ -194,9 +194,14 @@ public class UserService {
         user.setOnline(online);
         User savedUser = userRepository.save(user);
         UserDto saved = toUserDto(savedUser);
-        pushService.pushToAdmins(saved);
+        pushService.pushUser(saved);
         log.debug("Pushed user online status update to admins: id={}", saved.id());
         return saved;
+    }
+
+    @Transactional
+    public void deleteUser(String id) {
+        userRepository.deleteById(id);
     }
 
 
@@ -236,7 +241,5 @@ public class UserService {
     }
 
 
-    public void deleteUser(String id) {
-        userRepository.deleteById(id);
-    }
+
 }

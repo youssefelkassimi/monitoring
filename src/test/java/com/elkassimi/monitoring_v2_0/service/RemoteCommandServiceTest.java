@@ -6,6 +6,7 @@ import com.elkassimi.monitoring_v2_0.dto.RemoteCommandResultDto;
 import com.elkassimi.monitoring_v2_0.dto.RemoteCommandResultInnerDto;
 import com.elkassimi.monitoring_v2_0.model.Agent;
 import com.elkassimi.monitoring_v2_0.model.RemoteCommand;
+import com.elkassimi.monitoring_v2_0.model.User;
 import com.elkassimi.monitoring_v2_0.repository.RemoteCommandRepository;
 import com.elkassimi.monitoring_v2_0.websocket.RealTimePushService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -115,8 +116,9 @@ class RemoteCommandServiceTest {
     void recordResult_knownCommand_updatesFieldsAndPushes() {
         RemoteCommandService svc = service();
         Agent agent = Agent.builder().agentId("agt-5").build();
+        User user = User.builder().id("use-1").build();
         UUID id = UUID.randomUUID();
-        RemoteCommand command = RemoteCommand.builder().id(id).agent(agent).build();
+        RemoteCommand command = RemoteCommand.builder().id(id).agent(agent).user(user).build();
         when(remoteCommandRepository.findById(id)).thenReturn(Optional.of(command));
         when(remoteCommandRepository.save(any(RemoteCommand.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -144,7 +146,7 @@ class RemoteCommandServiceTest {
     void recordResult_unknownStatusString_mapsToError() {
         RemoteCommandService svc = service();
         UUID id = UUID.randomUUID();
-        RemoteCommand command = RemoteCommand.builder().id(id).agent(Agent.builder().agentId("agt-6").build()).build();
+        RemoteCommand command = RemoteCommand.builder().id(id).agent(Agent.builder().agentId("agt-6").build()).user(User.builder().id("use-1").build()).build();
         when(remoteCommandRepository.findById(id)).thenReturn(Optional.of(command));
         when(remoteCommandRepository.save(any(RemoteCommand.class))).thenAnswer(inv -> inv.getArgument(0));
 

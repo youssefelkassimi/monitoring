@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Map;
 
 @RestController
@@ -72,15 +73,17 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(userService.setOnlineStatus(id, online)));
     }
 
-    @PostMapping("/{id}/logout")
-    public ResponseEntity<ApiResponse> logout(@PathVariable String id) throws Exception {
-        userService.logout(id);
-        return ResponseEntity.ok(ApiResponse.ok());
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteUser(@PathVariable String id) throws Exception {
         userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+
+    @PostMapping("/{userId}/logout")
+    public ResponseEntity<ApiResponse> logout(@PathVariable String userId) throws Exception {
+        userService.logout(userId);
         return ResponseEntity.ok(ApiResponse.ok());
     }
 

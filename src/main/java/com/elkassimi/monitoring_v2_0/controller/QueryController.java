@@ -3,14 +3,9 @@ package com.elkassimi.monitoring_v2_0.controller;
 import com.elkassimi.monitoring_v2_0.dto.ApiResponse;
 import com.elkassimi.monitoring_v2_0.dto.CommandCreateRequestDto;
 import com.elkassimi.monitoring_v2_0.model.Alert;
+import com.elkassimi.monitoring_v2_0.model.AnomalyAlertEntity;
 import com.elkassimi.monitoring_v2_0.model.Metrics;
-import com.elkassimi.monitoring_v2_0.service.AgentService;
-import com.elkassimi.monitoring_v2_0.service.AlertService;
-import com.elkassimi.monitoring_v2_0.service.DiscoveryService;
-import com.elkassimi.monitoring_v2_0.service.InventoryService;
-import com.elkassimi.monitoring_v2_0.service.LogService;
-import com.elkassimi.monitoring_v2_0.service.MetricsService;
-import com.elkassimi.monitoring_v2_0.service.RemoteCommandService;
+import com.elkassimi.monitoring_v2_0.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
-/**
- * Read-side / dashboard-facing API: everything a frontend uses to browse
- * agents and their history, plus queuing remote commands. Nothing here is
- * called by the Python agent itself.
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/agents")
@@ -38,6 +28,7 @@ public class QueryController {
     private final DiscoveryService discoveryService;
     private final LogService logService;
     private final AlertService alertService;
+    private final AnomalyService anomalyService;
     private final RemoteCommandService remoteCommandService;
 
     @GetMapping()
@@ -53,7 +44,7 @@ public class QueryController {
     @GetMapping("/{agentId}/metrics")
     public ResponseEntity<ApiResponse> listMetrics(
             @PathVariable String agentId,
-             Pageable pageable) {
+            Pageable pageable) {
         System.out.println(pageable);
         return ResponseEntity.ok(ApiResponse.ok(metricsService.listForAgent(agentId, pageable)));
     }
@@ -125,11 +116,29 @@ public class QueryController {
         return ResponseEntity.ok(ApiResponse.ok(alertService.listByStatus(parsed, pageable)));
     }
 
+    @GetMapping("/{agentId}/anomaly")
+    public ResponseEntity<ApiResponse> listAgentAnomaly(
+            @PathVariable String agentId,
+            @PageableDefault(size = 50) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(anomalyService.listForAgent(agentId, pageable)));
+    }
+
+    @GetMapping("/anomlies")
+    public ResponseEntity<ApiResponse> listAnomalies(
+            @RequestParam(required = false) String status,
+            @PageableDefault(size = 50) Pageable pageable) {
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.ok(ApiResponse.ok(anomalyService.listAll(pageable)));
+        }
+        AnomalyAlertEntity.Status parsed = AnomalyAlertEntity.Status.valueOf(status.toUpperCase());
+        return ResponseEntity.ok(ApiResponse.ok(anomalyService.listByStatus(parsed, pageable)));
+    }
+
     @PostMapping("/{agentId}/commands")
     public ResponseEntity<ApiResponse> queueCommand(
             @PathVariable String agentId,
             @Valid @RequestBody CommandCreateRequestDto dto) throws Exception {
-        log.error("args:{}",dto.getArgs());
+        log.error("args:{}", dto.getArgs());
         return ResponseEntity.ok(ApiResponse.ok(remoteCommandService.queue(agentId, dto)));
     }
 
@@ -140,15 +149,21 @@ public class QueryController {
         return ResponseEntity.ok(ApiResponse.ok(remoteCommandService.listForAgent(agentId, pageable)));
     }
 
-
-
     @DeleteMapping("/{agentId}")
-    public void deleteAgentById(@PathVariable String agentId){
-
+    public ResponseEntity<ApiResponse> deleteAgentById(@PathVariable String agentId) throws Exception {
+        agentService.deleteAgent(agentId);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @PatchMapping("/{agentId}/toggleRevokeStatus")
-    public void toggleRevokeAgent(@PathVariable String agentId) throws Exception {
+    public ResponseEntity<ApiResponse> toggleRevokeAgent(@PathVariable String agentId) throws Exception {
         agentService.toggleRevokeAgent(agentId);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @PatchMapping("/{agentId}/{name}")
+    public ResponseEntity<ApiResponse> renameAgent(@PathVariable String agentId, @PathVariable String name) throws Exception {
+        agentService.renameAgent(agentId, name);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

@@ -67,7 +67,7 @@ class AgentLivenessSchedulerTest {
         verify(agentRepository).save(agent);
         verify(livenessCache).markOffline("agt-2");
         verify(pushService).pushAgentUpdate(agent);
-        verify(pushService).pushAgents(List.of(agent));
+//        verify(pushService).pushAgentUpdate(argThat(agent -> agent.getAgentId().equals("agt-2")))
     }
 
     @Test

@@ -64,6 +64,10 @@ public class Agent {
     @Column(name = "last_seen_at")
     private Instant lastSeenAt;
 
+    @Column(name = "deleted")
+    @Builder.Default
+    private Boolean deleted = false;
+
     public enum AgentStatus {
         ONLINE, OFFLINE
     }

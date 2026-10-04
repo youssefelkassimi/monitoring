@@ -47,23 +47,25 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {})
+                .cors(cors -> {
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/actuator/health", "/error").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/agent-register", "/api/heartbeat").hasRole("AGENT")
                         .requestMatchers("/api/metrics", "/api/inventory", "/api/discovery", "/api/logs",
-                                "/api/alerts", "/api/commands/**", "/api/agent-config/**").hasRole("AGENT")
+                                "/api/alerts", "/api/commands/**", "/api/agent-config/**")
+                        .hasRole("AGENT")
                         .requestMatchers("/api").hasAnyRole("ADMIN", "VIEWER")
                         .anyRequest().hasAnyRole("ADMIN", "VIEWER"))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService, agentRepository),
                         UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response, ex) ->
-                                response.sendError(HttpStatus.UNAUTHORIZED.value(), "Authentication required"))
-                        .accessDeniedHandler((request, response, ex) ->
-                                response.sendError(HttpStatus.FORBIDDEN.value(), "Forbidden")));
+                        .authenticationEntryPoint((request, response, ex) -> response
+                                .sendError(HttpStatus.UNAUTHORIZED.value(), "Authentication required"))
+                        .accessDeniedHandler((request, response, ex) -> response.sendError(HttpStatus.FORBIDDEN.value(),
+                                "Forbidden")));
         return http.build();
     }
 
@@ -74,7 +76,7 @@ public class SecurityConfig {
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
-                                        @NonNull FilterChain filterChain) throws ServletException, IOException {
+                @NonNull FilterChain filterChain) throws ServletException, IOException {
             String header = request.getHeader("Authorization");
             if (header == null || !header.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
@@ -111,7 +113,8 @@ public class SecurityConfig {
             Agent agent = candidate.orElseThrow(() -> new JwtException("Unknown agent"));
             if (!TokenHash.sha256(token).equals(agent.getTokenHash())
                     || agent.getProvisioningStatus() == Agent.ProvisioningStatus.REVOKED
-                    || agent.getProvisioningStatus() == Agent.ProvisioningStatus.EXPIRED) {
+                    || agent.getProvisioningStatus() == Agent.ProvisioningStatus.EXPIRED
+                    || agent.getDeleted()) {
                 throw new JwtException("Agent token is not active");
             }
             boolean connectionEndpoint = request.getRequestURI().equals("/api/agent-register")

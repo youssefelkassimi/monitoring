@@ -1,8 +1,10 @@
 package com.elkassimi.monitoring_v2_0.service;
 
+import com.elkassimi.monitoring_v2_0.dto.AlertEventDto;
 import com.elkassimi.monitoring_v2_0.dto.AnomalyAlert;
 import com.elkassimi.monitoring_v2_0.dto.AnomalyEvent;
 import com.elkassimi.monitoring_v2_0.dto.AnomalyResult;
+import com.elkassimi.monitoring_v2_0.model.Agent;
 import com.elkassimi.monitoring_v2_0.model.Alert;
 import com.elkassimi.monitoring_v2_0.model.AnomalyAlertEntity;
 import com.elkassimi.monitoring_v2_0.repository.AnomalyAlertRepository;
@@ -10,6 +12,8 @@ import com.elkassimi.monitoring_v2_0.websocket.RealTimePushService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -60,6 +64,7 @@ public class AnomalyService {
         }
         if(result == null) return ;
 
+        log.error("anomal: {}", result);
         State state = states.computeIfAbsent(event.agentId(), k->new State());
 
 
@@ -87,6 +92,29 @@ public class AnomalyService {
                 pushService.pushAnomaly(anomaly, event.agentId());
             }
         }
+    }
+
+    public Page<AnomalyAlertEntity> listForAgent(String agentId, Pageable pageable) {
+        log.debug("Listing alerts for agentId={}, pageable={}", agentId, pageable);
+        Page<AnomalyAlertEntity> page = alertRepository.findByAgent_AgentIdOrderByStartedAtDesc(agentId, pageable);
+        log.debug("Listed {} alerts (total={}) for agentId={}",
+                page.getNumberOfElements(), page.getTotalElements(), agentId);
+        return page;
+    }
+
+    public Page<AnomalyAlertEntity> listAll(Pageable pageable) {
+        log.debug("Listing all alerts, pageable={}", pageable);
+        Page<AnomalyAlertEntity> page = alertRepository.findAllByOrderByStartedAtDesc(pageable);
+        log.debug("Listed {} alerts (total={})", page.getNumberOfElements(), page.getTotalElements());
+        return page;
+    }
+
+    public Page<AnomalyAlertEntity> listByStatus(AnomalyAlertEntity.Status status, Pageable pageable) {
+        log.debug("Listing AnomalyAlertEntitys by status={}, pageable={}", status, pageable);
+        Page<AnomalyAlertEntity> page = alertRepository.findByStatusOrderByStartedAtDesc(status, pageable);
+        log.debug("Listed {} alerts (total={}) with status={}",
+                page.getNumberOfElements(), page.getTotalElements(), status);
+        return page;
     }
 
     private AnomalyAlertEntity from(AnomalyAlert alert) throws Exception {

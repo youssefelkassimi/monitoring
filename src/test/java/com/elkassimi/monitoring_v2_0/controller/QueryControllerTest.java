@@ -36,6 +36,7 @@ class QueryControllerTest {
     @Mock private DiscoveryService discoveryService;
     @Mock private LogService logService;
     @Mock private AlertService alertService;
+    @Mock private AnomalyService anomalyService;
     @Mock private RemoteCommandService remoteCommandService;
 
     private MockMvc mockMvc;
@@ -44,7 +45,7 @@ class QueryControllerTest {
     void setUp() {
         QueryController controller = new QueryController(
                 agentService, metricsService, inventoryService, discoveryService,
-                logService, alertService, remoteCommandService);
+                logService, alertService, anomalyService, remoteCommandService);
         mockMvc = MockMvcBuilders.
                 standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -144,7 +145,7 @@ class QueryControllerTest {
     void listAlerts_noStatusFilter_listsAll() throws Exception {
         when(alertService.listAll(any())).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 50), 0));
 
-        mockMvc.perform(get("/api/alerts"))
+        mockMvc.perform(get("/api/agents/alerts"))
                 .andExpect(status().isOk());
     }
 
@@ -152,7 +153,7 @@ class QueryControllerTest {
     void listAlerts_withStatusFilter_listsByStatus() throws Exception {
         when(alertService.listByStatus(eq(Alert.AlertStatus.PROBLEM), any())).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 50), 0));
 
-        mockMvc.perform(get("/api/alerts").param("status", "problem"))
+        mockMvc.perform(get("/api/agents/alerts").param("status", "problem"))
                 .andExpect(status().isOk());
     }
 
@@ -162,7 +163,8 @@ class QueryControllerTest {
                 .thenReturn(RemoteCommand.builder().command("uptime").build());
 
         String body = """
-                {"command":"uptime"}
+                {"command":"uptime",
+                "userId": "use-1"}
                 """;
 
         mockMvc.perform(post("/api/agents/agt-1/commands")

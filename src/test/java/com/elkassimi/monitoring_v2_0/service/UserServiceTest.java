@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,7 +64,7 @@ class UserServiceTest {
         assertThat(result.email()).isEqualTo("alex@fleet.internal");
         assertThat(result.password()).isEmpty();
         assertThat(result.isOnline()).isFalse();
-        verify(pushService).pushToAdmins(result);
+        verify(pushService).pushUser(result);
     }
 
     @Test
@@ -81,8 +82,10 @@ class UserServiceTest {
 
     @Test
     void logout_setsOnlineFalseAndSaves() throws Exception {
-        User user = User.builder().id("u-2").email("e@x.com").fullName("E").isOnline(true).build();
+        User user = User.builder().id("u-2").email("e@x.com").fullName("E").role(User.role.valueOf("ADMIN")).isOnline(true).build();
         when(userRepository.findById("u-2")).thenReturn(Optional.of(user));
+
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         userService.logout("u-2");
 
@@ -112,11 +115,9 @@ class UserServiceTest {
 
         assertThat(result.id()).isEqualTo("u-3");
         assertThat(result.role()).isEqualTo("ADMIN");
-        // isOnline is preserved from the persisted entity, not overwritten
-        // by the incoming DTO's default - confirms the fix that stopped
-        // updateUser from re-inserting a brand new row.
         assertThat(result.isOnline()).isTrue();
-        verify(pushService).pushToAdmins(result);
+        verify(pushService).pushUserUpdate(any(UserDto.class), eq("u-3"));
+        verify(pushService).pushUser(any(UserDto.class));
     }
 
     @Test
@@ -278,7 +279,7 @@ class UserServiceTest {
         assertThat(result.isOnline()).isTrue();
         assertThat(user.isOnline()).isTrue();
         verify(userRepository).save(user);
-        verify(pushService).pushToAdmins(result);
+        verify(pushService).pushUser(result);
     }
 
     @Test

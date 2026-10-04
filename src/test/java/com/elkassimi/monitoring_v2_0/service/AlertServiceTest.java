@@ -87,7 +87,7 @@ class AlertServiceTest {
         assertThat(result).allSatisfy(a -> assertThat(a.getAgent()).isSameAs(agent));
 
         verify(pushService, times(2)).pushAlert(org.mockito.ArgumentMatchers.any(Alert.class));
-        verify(pushService, times(2)).pushToUser(org.mockito.ArgumentMatchers.any(Alert.class), eq(Topics.ALERTS), eq("agt-2"));
+        verify(pushService, times(2)).pushAgentAlert(org.mockito.ArgumentMatchers.any(Alert.class), eq("agt-2"));
     }
 
     @Test

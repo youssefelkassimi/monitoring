@@ -77,17 +77,17 @@ public class MetricsService {
 
 
         if(dto.getSystem() != null){
-        Map<String, Object> metric = Map.of(
-                "agnet.id" , saved.getAgent().getAgentId(),
-                "system.cpu.cpu_percent", saved.getCpuPercent(),
-                "system.memory.percent", saved.getMemoryPercent(),
-                "system.disk_usage.0.percent", Objects.requireNonNullElse(FistDiskPercent(dto.getSystem()), 0),
-                "system.network.total_errin", nestedInteger(dto.getSystem(),"network", "total_errin"),
-                "system.processes.total_count", saved.getProcessCount(),
-                "system.cpu.load_avg.0", saved.getLoadAvg(),
-                "system.memory.swap_percent", Objects.requireNonNullElse(nestedDouble(dto.getSystem(), "memory", "swap_percent"), 0)
-        );
-        publisher.publishEvent(new AnomalyEvent(saved.getAgent().getAgentId(), metric));
+//        Map<String, Object> metric = Map.of(
+//                "agnet.id" , saved.getAgent().getAgentId(),
+//                "system.cpu.cpu_percent", saved.getCpuPercent(),
+//                "system.memory.percent", saved.getMemoryPercent(),
+//                "system.disk_usage.0.percent", Objects.requireNonNullElse(FistDiskPercent(dto.getSystem()), 0),
+//                "system.network.total_errin", nestedInteger(dto.getSystem(),"network", "total_errin"),
+//                "system.processes.total_count", saved.getProcessCount(),
+//                "system.cpu.load_avg.0", saved.getLoadAvg(),
+//                "system.memory.swap_percent", Objects.requireNonNullElse(nestedDouble(dto.getSystem(), "memory", "swap_percent"), 0)
+//        );
+//        publisher.publishEvent(new AnomalyEvent(saved.getAgent().getAgentId(), metric));
         }
         return saved;
     }

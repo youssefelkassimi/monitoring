@@ -117,7 +117,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"fullName":"Alex Chen","email":"alex@fleet.internal","password":"secret","role":"ADMIN"}
+                                {"fullName":"Alex Chen","email":"alex@fleet.internal","password":"secret","role":"ADMIN", "isOnline":false}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("u-6"));
@@ -131,8 +131,8 @@ class UserControllerTest {
         mockMvc.perform(put("/api/users/u-7")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"id":"ignored","fullName":"Alex Chen","email":"alex@fleet.internal","role":"VIEWER"}
-                                """))
+                {"id":"u-7","fullName":"Alex Chen","email":"alex@fleet.internal","role":"VIEWER","isOnline":false}
+                """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("u-7"));
 

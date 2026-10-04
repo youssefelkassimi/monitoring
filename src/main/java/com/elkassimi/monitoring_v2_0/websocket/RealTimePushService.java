@@ -52,6 +52,9 @@ public class RealTimePushService {
     public void pushAlert(Object alert) {
         push(alert, Topics.ALERTS);
     }
+    public  void pushAgentAlert(Object alert, String agentId){
+        pushAgent(alert, Topics.ALERTS, agentId);
+    }
 
     public void pushHeartbeat(Object heartbeat, String agent) {
         pushAgent(heartbeat, Topics.HEARTBEATS, agent);

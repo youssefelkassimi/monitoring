@@ -55,8 +55,8 @@ public class AlertService {
         saved.forEach(a -> {
             log.debug("Pushing alert id={} agentId={} severity={} triggerName='{}'",
                     a.getId(), dto.getAgentId(), a.getSeverity(), a.getTriggerName());
-            pushService.pushAlert(a);                                        // dashboard-wide feed
-            pushService.pushToUser(a, Topics.ALERTS, dto.getAgentId());      // this host's Alerts tab
+            pushService.pushAlert(a);
+            pushService.pushAgentAlert(a, dto.getAgentId());
         });
         return saved;
     }

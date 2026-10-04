@@ -5,6 +5,7 @@ import com.elkassimi.monitoring_v2_0.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import java.security.Principal;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
@@ -63,7 +65,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Bean
-    ObjectMapper mapper(){
+    ObjectMapper mapper() {
         return new ObjectMapper();
     }
 
@@ -79,13 +81,34 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         @Override
         public Message<?> preSend(Message<?> message, MessageChannel channel) {
             StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                accessor.setUser(authenticate(accessor.getFirstNativeHeader("Authorization")));
-            } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())
-                    && isAdminTopic(accessor.getDestination())
+                // 1. Authenticate and set user on CONNECT
+                Authentication auth = authenticate(accessor.getFirstNativeHeader("Authorization"));
+                accessor.setUser(auth);
+
+                // 2. Save user to session attributes so it persists across SUBSCRIBE/SEND
+                // frames
+                if (accessor.getSessionAttributes() != null) {
+                    accessor.getSessionAttributes().put("auth_user", auth);
+                }
+            } else {
+                // 3. Restore user from session attributes for subsequent frames (SUBSCRIBE,
+                // etc.)
+                if (accessor.getUser() == null && accessor.getSessionAttributes() != null) {
+                    Authentication auth = (Authentication) accessor.getSessionAttributes().get("auth_user");
+                    if (auth != null) {
+                        accessor.setUser(auth);
+                    }
+                }
+            }
+
+            // 4. Validate admin topics on SUBSCRIBE
+            if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) && isAdminTopic(accessor.getDestination())
                     && !isAdmin(accessor.getUser())) {
                 throw new MessageDeliveryException("Only administrators may subscribe to this topic");
             }
+
             return message;
         }
 
@@ -119,7 +142,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         private boolean isAdmin(Principal principal) {
             return principal instanceof Authentication authentication
                     && authentication.getAuthorities().stream()
-                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+                            .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
         }
     }
 }

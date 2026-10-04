@@ -49,6 +49,7 @@ public class AnomalyAlertEntity {
     private Map<String, Double> topFeatures;
 
     @Column(name = "started_at", nullable = false)
+    @Builder.Default
     private Instant startedAt = Instant.now();
 
     @Column(name = "resolved_at")

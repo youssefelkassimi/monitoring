@@ -37,7 +37,6 @@ public class AgentService {
     private final AgentLivenessCache livenessCache;
     private final JwtService jwtService;
 
-
     @Transactional
     @CacheEvict(value = "agents", allEntries = true)
     public AgentProvisionResponseDto provision(AgentProvisionRequestDto dto) {
@@ -57,7 +56,8 @@ public class AgentService {
                 .build();
 
         Agent saved = agentRepository.save(agent);
-        log.info("Agent provisioned successfully: agentId={}, label='{}', expiresAt={}", saved.getAgentId(), saved.getLabel(), expiresAt);
+        log.info("Agent provisioned successfully: agentId={}, label='{}', expiresAt={}", saved.getAgentId(),
+                saved.getLabel(), expiresAt);
 
         pushService.pushAgents(saved);
         log.debug("Pushed provisioned agent to real-time clients: agentId={}", saved.getAgentId());
@@ -99,11 +99,11 @@ public class AgentService {
         agent.setLastSeenAt(Instant.now());
         agent.setTokenExpiresAt(Instant.now().plus(40, ChronoUnit.DAYS));
 
-        if (agent.getProvisioningStatus() == null || agent.getProvisioningStatus() == Agent.ProvisioningStatus.PENDING) {
+        if (agent.getProvisioningStatus() == null
+                || agent.getProvisioningStatus() == Agent.ProvisioningStatus.PENDING) {
             log.info("Activating agent provisioning status for agentId={}", dto.getAgentId());
             agent.setProvisioningStatus(Agent.ProvisioningStatus.ACTIVE);
         }
-
 
         Agent saved = agentRepository.save(agent);
 
@@ -119,8 +119,6 @@ public class AgentService {
         return saved;
     }
 
-    /** Finds the agent, creating a bare-bones record if it heartbeats before
-     * a register call has landed (e.g. auto_register disabled on the agent). */
     @Transactional
     public Agent findOrCreate(String agentId) {
         log.debug("Looking up agent by agentId={}", agentId);
@@ -166,9 +164,10 @@ public class AgentService {
                 dto.getAgentId(), savedHeartbeat.getId());
     }
 
-
-    /** Touches lastSeenAt without changing status - used by every other
-     * ingest endpoint so "last seen" reflects any traffic, not just heartbeats. */
+    /**
+     * Touches lastSeenAt without changing status - used by every other
+     * ingest endpoint so "last seen" reflects any traffic, not just heartbeats.
+     */
     @Transactional
     @CacheEvict(value = "agents", key = "#agentId")
     public Agent touch(String agentId) {
@@ -184,7 +183,8 @@ public class AgentService {
     @Cacheable(value = "agents", key = "'findAll'")
     public List<Agent> findAll() {
         log.debug("Fetching all agents");
-        List<Agent> agents = agentRepository.findAll();
+        List<Agent> agents = agentRepository.findAll().stream()
+                .filter(a -> !a.getDeleted()).toList();
         log.debug("Fetched {} agents", agents.size());
         return agents;
     }
@@ -216,14 +216,14 @@ public class AgentService {
         return agents;
     }
 
-    public long agentCount(){
+    public long agentCount() {
         log.trace("Counting all agents");
         long count = agentRepository.count();
         log.debug("Total agent count={}", count);
         return count;
     }
 
-    public long onlineAgentCount(){
+    public long onlineAgentCount() {
         log.trace("Counting online agents");
         long count = findByStatus(Agent.AgentStatus.ONLINE).size();
         log.debug("Online agent count={}", count);
@@ -231,22 +231,43 @@ public class AgentService {
     }
 
     @CacheEvict(value = "agents", key = "#agentId")
-    public void toggleRevokeAgent(String agentId) throws Exception{
-        log.info("toggle revoke for agent with id: {}",agentId);
+    public void toggleRevokeAgent(String agentId) throws Exception {
+        log.info("toggle revoke for agent with id: {}", agentId);
         Agent agent = findOrThrow(agentId);
-        Agent.ProvisioningStatus status =
-                agent.getProvisioningStatus().equals(Agent.ProvisioningStatus.REVOKED) ?
-                        Agent.ProvisioningStatus.PENDING : Agent.ProvisioningStatus.REVOKED;
+        Agent.ProvisioningStatus status = agent.getProvisioningStatus().equals(Agent.ProvisioningStatus.REVOKED)
+                ? Agent.ProvisioningStatus.PENDING
+                : Agent.ProvisioningStatus.REVOKED;
         agent.setProvisioningStatus(status);
-        Agent saved =agentRepository.save(agent);
+        Agent saved = agentRepository.save(agent);
         pushService.pushAgentUpdate(saved);
 
     }
 
-    public Agent findOrThrow(String agentId) throws Exception{
-        log.info("Get agent with id: {} from database",agentId);
+    public Agent findOrThrow(String agentId) throws Exception {
+        log.info("Get agent with id: {} from database", agentId);
         return agentRepository.findByAgentId(agentId)
-                .orElseThrow(()->new Exception("agent not foud with id: "+agentId));
+                .orElseThrow(() -> new Exception("agent not foud with id: " + agentId));
+    }
+
+    @Transactional
+    @CacheEvict(value = "agents", key = "#agentId")
+    public void deleteAgent(String agentId) throws Exception {
+        log.info("Delete agent with id: {}", agentId);
+        Agent agent = findOrThrow(agentId);
+        agent.setDeleted(true);
+        Agent saved = agentRepository.save(agent);
+        pushService.pushAgents(saved);
+    }
+
+    @Transactional
+    @CacheEvict(value = "agents", key = "#agentId")
+    public void renameAgent(String agentId, String name) throws Exception {
+        log.info("Rename agent with id: {} new name", agentId);
+        Agent agent = findOrThrow(agentId);
+        agent.setLabel(name);
+        Agent saved = agentRepository.save(agent);
+        pushService.pushAgents(saved);
+
     }
 
 }

@@ -112,21 +112,18 @@ class MetricsServiceTest {
 
     @Test
     void save_nullChecks_throwsNpe() {
-        // Documents current behavior: MetricsService.save() calls
-        // dto.getChecks().get("svc") unconditionally when pushing the
-        // service-check topic, so a metrics payload with no "checks" block
-        // at all (not even an empty map) throws NPE instead of degrading
-        // gracefully like the system/checks JSON columns do just above it.
         metricsService = service();
-        when(agentService.touch("agt-4")).thenReturn(Agent.builder().agentId("agt-4").build());
+        Agent agent = Agent.builder().agentId("agt-4").build();
+        when(agentService.touch("agt-4")).thenReturn(agent);
         when(metricsRepository.save(any(Metrics.class))).thenAnswer(inv -> inv.getArgument(0));
 
         MetricsRequestDto dto = new MetricsRequestDto();
         dto.setAgentId("agt-4");
         // dto.checks left null
+        Metrics saved = metricsService.save(dto);
 
-        assertThatThrownBy(() -> metricsService.save(dto))
-                .isInstanceOf(NullPointerException.class);
+        assertThat(saved).isNotNull();
+        assertThat(saved.getAgent()).isSameAs(agent);
     }
 
     @Test
