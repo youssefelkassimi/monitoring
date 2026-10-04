@@ -6,9 +6,9 @@ spring:
     name: monitoring_v2
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/monitorV1 #${DB_URL}
-    username:  postgres #${DB_USERNAME}
-    password: 1111    #${DB_PASSWORD}
+    url: ${DB_URL}
+    username:  ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -40,7 +40,7 @@ spring:
     default-property-inclusion: non_null
 
 anomaly:
-  base-url: http://127.0.0.1:5001 #${ANOMALY_API_BASE_URL:http://127.0.0.1:5001}
+  base-url: ${ANOMALY_API_BASE_URL:http://127.0.0.1:5001}
   api-key: ${ANOMALY_API_KEY:}
   confirm: 2
 
