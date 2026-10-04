@@ -10,6 +10,7 @@ import com.elkassimi.monitoring_v2_0.repository.UserRepository;
 import com.elkassimi.monitoring_v2_0.service.AgentService;
 import com.elkassimi.monitoring_v2_0.service.MetricsService;
 import com.elkassimi.monitoring_v2_0.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
