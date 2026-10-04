@@ -11,6 +11,7 @@ import com.elkassimi.monitoring_v2_0.service.AgentService;
 import com.elkassimi.monitoring_v2_0.service.MetricsService;
 import com.elkassimi.monitoring_v2_0.service.UserService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import java.time.Instant;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class Runner implements CommandLineRunner {
 
     private final AgentService agentService;
@@ -35,7 +37,7 @@ public class Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        System.out.println("REDIS TARGET = " + host + ":" + port);
+        log.error("REDIS TARGET = {}  :{}" , host, port);
 
         try {
             UserDto user = UserDto.builder()
