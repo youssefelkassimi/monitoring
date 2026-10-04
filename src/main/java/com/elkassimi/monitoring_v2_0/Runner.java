@@ -21,8 +21,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class Runner implements CommandLineRunner {
 
@@ -32,12 +34,11 @@ public class Runner implements CommandLineRunner {
     private final MetricsService metricsService;
     private final QueryController queryController;
 
-    @Value("${spring.data.redis.host}") String host;
-    @Value("${spring.data.redis.port}") int port;
+    @Value("${spring.data.redis.host}") private String host;
+    @Value("${spring.data.redis.port}") private int port;
 
     @Override
     public void run(String... args) throws Exception {
-
         log.info("REDIS TARGET = {}  :{}" , host, port);
 
         try {
