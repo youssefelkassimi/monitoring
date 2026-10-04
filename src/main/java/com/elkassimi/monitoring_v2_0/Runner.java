@@ -39,7 +39,7 @@ public class Runner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("REDIS TARGET = {}  :{}" , host, port);
+        // log.info("REDIS TARGET = {}  :{}" , host, port);
 
         try {
             UserDto user = UserDto.builder()
