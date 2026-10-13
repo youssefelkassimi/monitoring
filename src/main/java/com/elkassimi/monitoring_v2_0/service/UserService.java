@@ -201,14 +201,22 @@ public class UserService {
 
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
-    public void deleteUser(String id) {
-         log.info("Deleting user : id={}", id);
+    public void deleteUser(String id) throws Exception {
+        log.info("Deleting user: id={}", id);
         User user = findOrThrow(id);
+    
+        UserDto deleted = UserDto.builder()
+                .id(user.getId())
+                .isOnline(false)
+                .fullName("deleted") //for the frontend
+                .email(user.getEmail())
+                .password("")
+                .role(user.getRole().name())
+                .build();
+    
         userRepository.deleteById(id);
-        user.setFullName("deleted");
-        UserDto deleted = toUserDto(user);
-        log.debug("Pushed user delete to admins: id={}", saved.id());
-        pushService.pushUser(saved);
+        log.debug("Pushed user delete to admins: id={}", deleted.id());
+        pushService.pushUser(deleted);
     }
 
 
