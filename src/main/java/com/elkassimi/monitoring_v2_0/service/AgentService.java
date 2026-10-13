@@ -240,7 +240,7 @@ public class AgentService {
         agent.setProvisioningStatus(status);
         Agent saved = agentRepository.save(agent);
         pushService.pushAgentUpdate(saved);
-
+        pushService.pushAgents(saved);
     }
 
     public Agent findOrThrow(String agentId) throws Exception {
