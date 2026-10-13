@@ -65,7 +65,6 @@ public class AgentIngestController {
     @PostMapping("/metrics")
     public ResponseEntity<ApiResponse> metrics(@Valid @RequestBody MetricsRequestDto dto) {
         ensureOwnAgent(dto.getAgentId());
-        log.warn("checks{}",dto.getChecks());
         metricsService.save(dto);
         return ResponseEntity.ok(ApiResponse.ok());
     }
