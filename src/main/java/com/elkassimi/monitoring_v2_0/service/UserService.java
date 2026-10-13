@@ -200,8 +200,15 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public void deleteUser(String id) {
+         log.info("Deleting user : id={}", id);
+        User user = findOrThrow(id);
         userRepository.deleteById(id);
+        user.setFullName("deleted");
+        UserDto deleted = toUserDto(user);
+        log.debug("Pushed user delete to admins: id={}", saved.id());
+        pushService.pushUser(saved);
     }
 
 
