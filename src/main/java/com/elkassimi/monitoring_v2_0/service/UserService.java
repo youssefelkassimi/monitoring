@@ -213,10 +213,10 @@ public class UserService {
                 .password("")
                 .role(user.getRole().name())
                 .build();
-    
-        userRepository.deleteById(id);
+
         log.debug("Pushed user delete to admins: id={}", deleted.id());
         pushService.pushUser(deleted);
+        userRepository.deleteById(id);
     }
 
 
