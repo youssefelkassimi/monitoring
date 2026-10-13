@@ -235,7 +235,7 @@ public class AgentService {
         log.info("toggle revoke for agent with id: {}", agentId);
         Agent agent = findOrThrow(agentId);
         Agent.ProvisioningStatus status = agent.getProvisioningStatus().equals(Agent.ProvisioningStatus.REVOKED)
-                ? Agent.ProvisioningStatus.PENDING
+                ? Agent.ProvisioningStatus.ACTIVE
                 : Agent.ProvisioningStatus.REVOKED;
         agent.setProvisioningStatus(status);
         Agent saved = agentRepository.save(agent);
